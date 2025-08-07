@@ -4,7 +4,7 @@
 CONFIG_SET_NAME = sample-ses-config-set
 SNS_TOPIC_NAME = ses-events-topic
 EMAIL_IDENTITY = brian.rinaldi@localstack.cloud
-FROM_EMAIL = brian.rinaldi@localstack.cloud
+SNS_TOPIC_EMAIL = foo@bar.com
 TO_EMAIL = 
 SUBJECT = Test Email from SES
 MESSAGE = This is a test email sent via AWS SES on LocalStack using the CLI.
@@ -62,7 +62,7 @@ verify-email:
 subscribe-topic:
 	$(eval SNS_TOPIC_ARN := $(shell awslocal sns get-topic-attributes --topic-arn arn:aws:sns:$(shell awslocal configure get region):$(shell awslocal sts get-caller-identity --query Account --output text):$(SNS_TOPIC_NAME) --query 'Attributes.TopicArn' --output text 2>/dev/null || aws sns create-topic --name $(SNS_TOPIC_NAME) --query 'TopicArn' --output text))
 	@echo "Subscribing to SNS topic: $(SNS_TOPIC_ARN)"
-	SUBSCRIPTION_ARN=$$(awslocal sns subscribe --topic-arn $(SNS_TOPIC_ARN) --protocol email --notification-endpoint $(EMAIL_IDENTITY) | jq -r '.SubscriptionArn') && \
+	SUBSCRIPTION_ARN=$$(awslocal sns subscribe --topic-arn $(SNS_TOPIC_ARN) --protocol email --notification-endpoint $(SNS_TOPIC_EMAIL) | jq -r '.SubscriptionArn') && \
 	SUBSCRIPTION_TOKEN=$$(curl "http://localhost:4566/_aws/sns/subscription-tokens/$$SUBSCRIPTION_ARN" | jq -r '.subscription_token') && \
 	awslocal sns confirm-subscription \
 		--topic-arn $(SNS_TOPIC_ARN) \
@@ -84,10 +84,10 @@ send-email:
 		echo "Error: TO_EMAIL is required. Usage: make send-email TO_EMAIL=recipient@example.com"; \
 		exit 1; \
 	fi
-	@echo "Sending email from $(FROM_EMAIL) to $(TO_EMAIL)"
+	@echo "Sending email from $(EMAIL_IDENTITY) to $(TO_EMAIL)"
 	@echo "Subject: $(SUBJECT)"
 	awslocal ses send-email \
-		--from $(FROM_EMAIL) \
+		--from $(EMAIL_IDENTITY) \
 		--destination ToAddresses=$(TO_EMAIL) \
 		--message Subject='{Data="$(SUBJECT)",Charset="UTF-8"}',Body='{Text={Data="$(MESSAGE)",Charset="UTF-8"}}' \
 		--configuration-set-name $(CONFIG_SET_NAME)
@@ -100,10 +100,10 @@ send-html-email:
 		echo "Error: TO_EMAIL is required. Usage: make send-html-email TO_EMAIL=recipient@example.com"; \
 		exit 1; \
 	fi
-	@echo "Sending HTML email from $(FROM_EMAIL) to $(TO_EMAIL)"
+	@echo "Sending HTML email from $(EMAIL_IDENTITY) to $(TO_EMAIL)"
 	@echo "Subject: $(SUBJECT)"
 	awslocal ses send-email \
-		--from $(FROM_EMAIL) \
+		--from $(EMAIL_IDENTITY) \
 		--destination ToAddresses=$(TO_EMAIL) \
 		--message Subject='{Data="$(SUBJECT)",Charset="UTF-8"}',Body='{Html={Data="<html><body><h1>Test Email</h1><p>$(MESSAGE)</p><p>This is an <strong>HTML email</strong> sent via SES.</p></body></html>",Charset="UTF-8"},Text={Data="$(MESSAGE)",Charset="UTF-8"}}' \
 		--configuration-set-name $(CONFIG_SET_NAME)
@@ -116,10 +116,10 @@ send-custom-email:
 		echo "Error: TO_EMAIL is required. Usage: make send-custom-email TO_EMAIL=recipient@example.com SUBJECT='Your Subject' MESSAGE='Your message'"; \
 		exit 1; \
 	fi
-	@echo "Sending custom email from $(FROM_EMAIL) to $(TO_EMAIL)"
+	@echo "Sending custom email from $(EMAIL_IDENTITY) to $(TO_EMAIL)"
 	@echo "Subject: $(SUBJECT)"
 	awslocal ses send-email \
-		--from $(FROM_EMAIL) \
+		--from $(EMAIL_IDENTITY) \
 		--destination ToAddresses=$(TO_EMAIL) \
 		--message Subject='{Data="$(SUBJECT)",Charset="UTF-8"}',Body='{Text={Data="$(MESSAGE)",Charset="UTF-8"}}' \
 		--configuration-set-name $(CONFIG_SET_NAME)
