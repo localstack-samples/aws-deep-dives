@@ -1,0 +1,43 @@
+{
+  "orderId": "ORD-20250912-001",
+  "userId": "USER-55555",
+  "orderStatus": "PENDING",
+  "orderItems": [
+    {
+      "itemId": "ITEM-101",
+      "name": "Caffè Latte",
+      "quantity": 2,
+      "price": 4.5
+    },
+    {
+      "itemId": "ITEM-223",
+      "name": "Cappuccino",
+      "quantity": 1,
+      "price": 4.0
+    },
+    {
+      "itemId": "ITEM-334",
+      "name": "Flat White",
+      "quantity": 1,
+      "price": 4.25
+    },
+    {
+      "itemId": "ITEM-452",
+      "name": "Espresso",
+      "quantity": 3,
+      "price": 2.75
+    },
+    {
+      "itemId": "ITEM-565",
+      "name": "Mocha",
+      "quantity": 2,
+      "price": 4.75
+    },
+    {
+      "itemId": "ITEM-678",
+      "name": "Macchiato",
+      "quantity": 1,
+      "price": 3.95
+    }
+  ]
+}
