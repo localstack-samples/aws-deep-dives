@@ -19,7 +19,7 @@ const dynamoDB = DynamoDBDocumentClient.from(dynamoDBClient);
 const sqs = new SQSClient({});
 const logger = new Logger({ serviceName: 'orderProcessor' });
 
-// Since this is a demo, we're going to simulate some failures to demonstrate SQS retries
+// Since this is a demo, we're going to simulate some failures to demonstrate SQS retries and DLQ
 const shouldSimulateFailure = (itemId: string): boolean => {
     const lastDigit = itemId.slice(-1);
     
@@ -59,7 +59,6 @@ const updateItemStatus = async (orderId: string, itemId: string, status: string)
     try {
         logger.info(`Updating item ${itemId} status to: ${status}`);
         
-        // Update the item status
         await dynamoDB.send(new UpdateCommand({
             TableName: process.env.ORDER_ITEMS_TABLE_NAME as string,
             Key: {
@@ -87,7 +86,7 @@ const processRecord = async (record: SQSRecord): Promise<void> => {
         const itemMessage: OrderItemMessage = JSON.parse(record.body);
         logger.info(`Received message for item ${itemMessage.itemId} in order ${itemMessage.orderId}`);
         
-        // Check if item has already been processed (idempotency)
+        // Check if item has already been processed
         const existingItem = await dynamoDB.send(new GetCommand({
             TableName: process.env.ORDER_ITEMS_TABLE_NAME as string,
             Key: {
@@ -106,15 +105,15 @@ const processRecord = async (record: SQSRecord): Promise<void> => {
             return;
         }
         
-        // Process the item (this may throw an error to trigger retries)
+        // If the item has not been processed, process it
         await processOrderItem(itemMessage);
         
-        // If processing succeeds, update the item status
+        // If processing succeeds, update the item status to PROCESSED
         await updateItemStatus(itemMessage.orderId, itemMessage.itemId, 'PROCESSED');
 
         // in a real application, we'd probably want to update the order status too
         // we're not doing that here because we're simulating failures to demonstrate retries and DLQ
-        // so the full order will never be completed
+        // so the full order will never be completed using the test data
         
         logger.info(`Item ${itemMessage.itemId} processed successfully`);
         
@@ -130,7 +129,8 @@ const processRecord = async (record: SQSRecord): Promise<void> => {
 export const handler = async (event: SQSEvent, context: Context): Promise<void> => {
     logger.info(`Processing ${event.Records.length} messages`);
     
-    // Process all records - with batchSize: 1, each message is processed individually
+    // SQS can batch messages, but one error will cause the entire batch to fail
+    // so we're processing each message individually since we're simulating failures
     await Promise.all(
         event.Records.map(record => processRecord(record))
     );

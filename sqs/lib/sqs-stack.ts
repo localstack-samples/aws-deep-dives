@@ -42,6 +42,7 @@ export class SqsStack extends cdk.Stack {
       sortKey: { name: 'timestamp', type: dynamodb.AttributeType.STRING },
     });
 
+    // The idempotency table is used by Lambda Powertools to prevent duplicate orders from being submitted
     const idempotencyTable = new dynamodb.Table(this, 'idempotencyTable', {
       partitionKey: {
         name: 'id',
@@ -51,7 +52,7 @@ export class SqsStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     });
 
-    // Dead Letter Queue (DLQ)
+    // Dead Letter Queue (DLQ) holds messages that have failed processing after maximum retries
     const dlq = new sqs.Queue(this, 'DeadLetterQueue', {
       queueName: 'sqs-dlq.fifo',
       fifo: true,
@@ -73,6 +74,7 @@ export class SqsStack extends cdk.Stack {
       },
     });
 
+    // OrderManager function accepts orders with a list of items that are sent to the SQS FIFO queue
     const orderManagerFunction = new NodejsFunction(this, 'orderManagerFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
@@ -87,7 +89,7 @@ export class SqsStack extends cdk.Stack {
     orderItemsTable.grantReadWriteData(orderManagerFunction);
     queue.grantSendMessages(orderManagerFunction);
 
-    // OrderProcessor Lambda function
+    // OrderProcessor processes individual order items from the SQS FIFO queue
     const orderProcessorFunction = new NodejsFunction(this, 'orderProcessorFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
@@ -101,7 +103,7 @@ export class SqsStack extends cdk.Stack {
     ordersTable.grantReadWriteData(orderProcessorFunction);
     orderItemsTable.grantReadWriteData(orderProcessorFunction);
 
-    // DLQ Processor Lambda function
+    // DLQ Processor will mark items as failed that have failed processing after maximum retries
     const dlqProcessorFunction = new NodejsFunction(this, 'dlqProcessorFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
@@ -121,16 +123,13 @@ export class SqsStack extends cdk.Stack {
 
     // Add SQS event sources to Lambda functions
     orderProcessorFunction.addEventSource(new lambdaEventSources.SqsEventSource(queue, {
-      batchSize: 1, // Process one message at a time to allow individual success/failure
-      // Note: maxBatchingWindow is not supported for FIFO queues
+      batchSize: 1, // Process one message at a time
     }));
 
     dlqProcessorFunction.addEventSource(new lambdaEventSources.SqsEventSource(dlq, {
       batchSize: 10, // Process up to 10 messages at once
-      // Note: maxBatchingWindow is not supported for FIFO queues
     }));
 
-    // Output queue URLs for reference
     new cdk.CfnOutput(this, 'MainQueueUrl', {
       value: queue.queueUrl,
       description: 'Main FIFO Queue URL',

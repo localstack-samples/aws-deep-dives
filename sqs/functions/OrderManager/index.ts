@@ -77,6 +77,7 @@ const addOrderToDatabase = async (orderId: string, userId: string, items: OrderI
     return orderItemRecords;
 };
 
+// we're using Lambda Powertools idempotency to prevent duplicate orders from being submitted
 export const handler = makeIdempotent(
     async (event: OrderEvent, _context: Context): Promise<APIGatewayProxyResult> => {
         const orderItems = event.orderItems;
