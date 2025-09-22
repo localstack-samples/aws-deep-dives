@@ -65,7 +65,7 @@ export class SqsStack extends cdk.Stack {
     const queue = new sqs.Queue(this, 'OrdersFifoQueue', {
       queueName: 'sqs-main-queue.fifo',
       fifo: true,
-      contentBasedDeduplication: true,
+      contentBasedDeduplication: false, // we're passing a deduplication id to the queue
       visibilityTimeout: cdk.Duration.seconds(30),
       retentionPeriod: cdk.Duration.days(4),
       deadLetterQueue: {
