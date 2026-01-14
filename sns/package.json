@@ -1,0 +1,27 @@
+{
+  "name": "sns",
+  "version": "0.1.0",
+  "bin": {
+    "sns": "bin/sns.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@aws-cdk/aws-lambda-nodejs": "^1.203.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "22.7.9",
+    "aws-cdk": "2.1028.0",
+    "esbuild": "^0.27.2",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.6.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sns": "^3.968.0",
+    "@types/aws-lambda": "^8.10.159",
+    "aws-cdk-lib": "2.213.0",
+    "constructs": "^10.0.0"
+  }
+}
