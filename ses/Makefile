@@ -9,9 +9,17 @@ TO_EMAIL =
 SUBJECT = Test Email from SES
 MESSAGE = This is a test email sent via AWS SES on LocalStack using the CLI.
 
+LOCALSTACK_AUTH_TOKEN ?= $(LOCALSTACK_AUTH_TOKEN)
+
+.PHONY: start
+start:
+	@test -n "$(LOCALSTACK_AUTH_TOKEN)" || (echo "LOCALSTACK_AUTH_TOKEN is not set. Please set it before starting LocalStack." && exit 1)
+	DEBUG=1 LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) localstack start -d
+
 .PHONY: help
 help:
 	@echo "Available commands:"
+	@echo "  start     - Start LocalStack (requires LOCALSTACK_AUTH_TOKEN)"
 	@echo "  create-config-set    - Create the SES configuration set"
 	@echo "  create-sns-topic     - Create SNS topic for SES events"
 	@echo "  subscribe-topic      - Subscribe to the SNS topic via email"

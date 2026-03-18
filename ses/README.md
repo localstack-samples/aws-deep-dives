@@ -6,9 +6,22 @@ This folder contains a Makefile that helps you set up and test Amazon Simple Ema
 
 Before using this Makefile, make sure you have:
 
-- LocalStack running locally
-- LocalStack's thin AWS CLI wrapper `awslocal` installed
+- A valid [LocalStack for AWS license](https://localstack.cloud/pricing). Your license provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/getting-started/auth-token/) to activate LocalStack.
+- [LocalStack CLI](https://docs.localstack.cloud/getting-started/installation/) installed
+- LocalStack's AWS CLI wrapper [`awslocal`](https://github.com/localstack/awscli-local) installed
 - `jq` command-line JSON processor installed
+
+Export your auth token before starting:
+
+```bash
+export LOCALSTACK_AUTH_TOKEN=<your-auth-token>
+```
+
+## Start LocalStack
+
+```bash
+make start
+```
 
 ## Quick Start
 
