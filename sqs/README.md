@@ -40,11 +40,27 @@ This project demonstrates AWS SQS with a first-in-first-out (FIFO) queue and a d
 - **Functionality**: 
   - Updates individual item status to "FAILED" in DynamoDB
 
-## Deployment and Usage
+## Prerequisites
 
-- LocalStack running locally
-- LocalStack's thin AWS CDK wrapper `cdklocal` installed
-- LocalStack's thin AWS CLI wrapper `awslocal` installed
+- A valid [LocalStack for AWS license](https://localstack.cloud/pricing). Your license provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/getting-started/auth-token/) to activate LocalStack.
+- [LocalStack CLI](https://docs.localstack.cloud/getting-started/installation/) installed
+- LocalStack's AWS CDK wrapper [`cdklocal`](https://github.com/localstack/aws-cdk-local) installed
+- LocalStack's AWS CLI wrapper [`awslocal`](https://github.com/localstack/awscli-local) installed
+- Node.js and npm installed
+
+Export your auth token before starting:
+
+```bash
+export LOCALSTACK_AUTH_TOKEN=<your-auth-token>
+```
+
+## Start LocalStack
+
+```bash
+make start
+```
+
+## Deployment and Usage
 
 The Lambdas are built using TypeScript, so you'll need to first install dependencies.
 

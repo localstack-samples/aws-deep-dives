@@ -1,3 +1,10 @@
+LOCALSTACK_AUTH_TOKEN ?= $(LOCALSTACK_AUTH_TOKEN)
+
+.PHONY: start
+start:
+	@test -n "$(LOCALSTACK_AUTH_TOKEN)" || (echo "LOCALSTACK_AUTH_TOKEN is not set. Please set it before starting LocalStack." && exit 1)
+	DEBUG=1 LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) localstack start -d
+
 .PHONY: help
 help:
 	@echo "Available commands:"
@@ -5,6 +12,7 @@ help:
 	@echo "  test-order     - Test the order processing functionality"
 	@echo "  check-status-sqs      - get the status of the order items from SQS"
 	@echo "  check-status-dynamo      - get the status of the order items from the database"
+	@echo "  start    - Start the LocalStack"
 	@echo "  restart    - Restart the SQS stack on LocalStack"
 .PHONY: deploy
 deploy:
