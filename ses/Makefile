@@ -14,7 +14,7 @@ LOCALSTACK_AUTH_TOKEN ?= $(LOCALSTACK_AUTH_TOKEN)
 .PHONY: start
 start:
 	@test -n "$(LOCALSTACK_AUTH_TOKEN)" || (echo "LOCALSTACK_AUTH_TOKEN is not set. Please set it before starting LocalStack." && exit 1)
-	DEBUG=1 LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) localstack start -d
+	LOCALSTACK_DEBUG=1 LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) lstk start
 
 .PHONY: help
 help:
@@ -35,15 +35,15 @@ help:
 .PHONY: create-sns-topic
 create-sns-topic:
 	@echo "Creating SNS topic: $(SNS_TOPIC_NAME)"
-	awslocal sns create-topic --name $(SNS_TOPIC_NAME) --attributes DisplayName="SES Events Topic"
+	lstk aws sns create-topic --name $(SNS_TOPIC_NAME) --attributes DisplayName="SES Events Topic"
 
 # Create SES configuration set
 .PHONY: create-config-set
 create-config-set:
 	@echo "Creating SES configuration set: $(CONFIG_SET_NAME)"
-	awslocal ses create-configuration-set --configuration-set Name=$(CONFIG_SET_NAME)
+	lstk aws ses create-configuration-set --configuration-set Name=$(CONFIG_SET_NAME)
 	@echo "Enabling reputation metrics tracking..."
-	awslocal ses update-configuration-set-reputation-metrics-enabled \
+	lstk aws ses update-configuration-set-reputation-metrics-enabled \
 		--configuration-set-name $(CONFIG_SET_NAME) \
 		--enabled
 
@@ -52,9 +52,9 @@ create-config-set:
 # for example purposes, we're only including limited events
 .PHONY: setup-event-dest
 setup-event-dest:
-	$(eval SNS_TOPIC_ARN := $(shell awslocal sns get-topic-attributes --topic-arn arn:aws:sns:$(shell awslocal configure get region):$(shell awslocal sts get-caller-identity --query Account --output text):$(SNS_TOPIC_NAME) --query 'Attributes.TopicArn' --output text 2>/dev/null || aws sns create-topic --name $(SNS_TOPIC_NAME) --query 'TopicArn' --output text))
+	$(eval SNS_TOPIC_ARN := $(shell lstk aws sns get-topic-attributes --topic-arn arn:aws:sns:$(shell lstk aws configure get region):$(shell lstk aws sts get-caller-identity --query Account --output text):$(SNS_TOPIC_NAME) --query 'Attributes.TopicArn' --output text 2>/dev/null || aws sns create-topic --name $(SNS_TOPIC_NAME) --query 'TopicArn' --output text))
 	@echo "Setting up event destination to SNS topic: $(SNS_TOPIC_ARN)"
-	awslocal ses create-configuration-set-event-destination \
+	lstk aws ses create-configuration-set-event-destination \
 		--configuration-set-name $(CONFIG_SET_NAME) \
 		--event-destination Name=ToSns,Enabled=true,MatchingEventTypes=reject,bounce,complaint,SNSDestination='{TopicARN=$(SNS_TOPIC_ARN)}'
 
@@ -62,17 +62,17 @@ setup-event-dest:
 .PHONY: verify-email
 verify-email:
 	@echo "Verifying email identity: $(EMAIL_IDENTITY)"
-	awslocal ses verify-email-identity --email-address $(EMAIL_IDENTITY)
+	lstk aws ses verify-email-identity --email-address $(EMAIL_IDENTITY)
 	@echo "Email verification initiated. Check your email for verification link."
 
 # Subscribe to the SNS topic
 # As we are testing this locally on LocalStack, this will also automatically confirm the subscription
 subscribe-topic:
-	$(eval SNS_TOPIC_ARN := $(shell awslocal sns get-topic-attributes --topic-arn arn:aws:sns:$(shell awslocal configure get region):$(shell awslocal sts get-caller-identity --query Account --output text):$(SNS_TOPIC_NAME) --query 'Attributes.TopicArn' --output text 2>/dev/null || aws sns create-topic --name $(SNS_TOPIC_NAME) --query 'TopicArn' --output text))
+	$(eval SNS_TOPIC_ARN := $(shell lstk aws sns get-topic-attributes --topic-arn arn:aws:sns:$(shell lstk aws configure get region):$(shell lstk aws sts get-caller-identity --query Account --output text):$(SNS_TOPIC_NAME) --query 'Attributes.TopicArn' --output text 2>/dev/null || aws sns create-topic --name $(SNS_TOPIC_NAME) --query 'TopicArn' --output text))
 	@echo "Subscribing to SNS topic: $(SNS_TOPIC_ARN)"
-	SUBSCRIPTION_ARN=$$(awslocal sns subscribe --topic-arn $(SNS_TOPIC_ARN) --protocol email --notification-endpoint $(SNS_TOPIC_EMAIL) | jq -r '.SubscriptionArn') && \
+	SUBSCRIPTION_ARN=$$(lstk aws sns subscribe --topic-arn $(SNS_TOPIC_ARN) --protocol email --notification-endpoint $(SNS_TOPIC_EMAIL) | jq -r '.SubscriptionArn') && \
 	SUBSCRIPTION_TOKEN=$$(curl "http://localhost:4566/_aws/sns/subscription-tokens/$$SUBSCRIPTION_ARN" | jq -r '.subscription_token') && \
-	awslocal sns confirm-subscription \
+	lstk aws sns confirm-subscription \
 		--topic-arn $(SNS_TOPIC_ARN) \
 		--token $$SUBSCRIPTION_TOKEN
 	@echo "SNS subscription complete. Subscription confirmed."
@@ -94,7 +94,7 @@ send-email:
 	fi
 	@echo "Sending email from $(EMAIL_IDENTITY) to $(TO_EMAIL)"
 	@echo "Subject: $(SUBJECT)"
-	awslocal ses send-email \
+	lstk aws ses send-email \
 		--from $(EMAIL_IDENTITY) \
 		--destination ToAddresses=$(TO_EMAIL) \
 		--message Subject='{Data="$(SUBJECT)",Charset="UTF-8"}',Body='{Text={Data="$(MESSAGE)",Charset="UTF-8"}}' \
@@ -110,7 +110,7 @@ send-html-email:
 	fi
 	@echo "Sending HTML email from $(EMAIL_IDENTITY) to $(TO_EMAIL)"
 	@echo "Subject: $(SUBJECT)"
-	awslocal ses send-email \
+	lstk aws ses send-email \
 		--from $(EMAIL_IDENTITY) \
 		--destination ToAddresses=$(TO_EMAIL) \
 		--message Subject='{Data="$(SUBJECT)",Charset="UTF-8"}',Body='{Html={Data="<html><body><h1>Test Email</h1><p>$(MESSAGE)</p><p>This is an <strong>HTML email</strong> sent via SES.</p></body></html>",Charset="UTF-8"},Text={Data="$(MESSAGE)",Charset="UTF-8"}}' \
@@ -126,7 +126,7 @@ send-custom-email:
 	fi
 	@echo "Sending custom email from $(EMAIL_IDENTITY) to $(TO_EMAIL)"
 	@echo "Subject: $(SUBJECT)"
-	awslocal ses send-email \
+	lstk aws ses send-email \
 		--from $(EMAIL_IDENTITY) \
 		--destination ToAddresses=$(TO_EMAIL) \
 		--message Subject='{Data="$(SUBJECT)",Charset="UTF-8"}',Body='{Text={Data="$(MESSAGE)",Charset="UTF-8"}}' \
@@ -138,10 +138,10 @@ send-custom-email:
 status:
 	@echo "=== SES Configuration Status ==="
 	@echo "Configuration Sets:"
-	@awslocal ses list-configuration-sets --query 'ConfigurationSets[?Name==`$(CONFIG_SET_NAME)`]' --output table || echo "No configuration sets found"
+	@lstk aws ses list-configuration-sets --query 'ConfigurationSets[?Name==`$(CONFIG_SET_NAME)`]' --output table || echo "No configuration sets found"
 	@echo ""
 	@echo "SNS Topics:"
-	@awslocal sns list-topics --query 'Topics[?contains(TopicArn, `$(SNS_TOPIC_NAME)`)]' --output table || echo "No matching SNS topics found"
+	@lstk aws sns list-topics --query 'Topics[?contains(TopicArn, `$(SNS_TOPIC_NAME)`)]' --output table || echo "No matching SNS topics found"
 	@echo ""
 	@echo "Verified Email Identities:"
-	@awslocal ses list-identities --identity-type EmailAddress --query 'Identities[?contains(@, `$(EMAIL_IDENTITY)`)]' --output table || echo "Email not verified"
+	@lstk aws ses list-identities --identity-type EmailAddress --query 'Identities[?contains(@, `$(EMAIL_IDENTITY)`)]' --output table || echo "Email not verified"

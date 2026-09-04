@@ -6,9 +6,9 @@ This folder contains a Makefile that helps you set up and test Amazon Simple Ema
 
 Before using this Makefile, make sure you have:
 
-- A valid [LocalStack for AWS license](https://localstack.cloud/pricing). Your license provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/getting-started/auth-token/) to activate LocalStack.
-- [LocalStack CLI](https://docs.localstack.cloud/getting-started/installation/) installed
-- LocalStack's AWS CLI wrapper [`awslocal`](https://github.com/localstack/awscli-local) installed
+- A valid [LocalStack for AWS license](https://localstack.cloud/pricing). Your license provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/aws/getting-started/auth-token/) to activate LocalStack.
+- [`lstk` CLI](https://docs.localstack.cloud/aws/developer-tools/running-localstack/lstk/) installed
+- [AWS CLI](https://docs.localstack.cloud/user-guide/integrations/aws-cli/), required by `lstk aws`
 - `jq` command-line JSON processor installed
 
 Export your auth token before starting:
@@ -96,7 +96,7 @@ The Makefile uses these default settings (you can modify them at the top of the 
 
 ## Notes
 
-- This setup is designed for local development with LocalStack, but the commands are the same for the AWS CLI (just replace `awslocal` with `aws`)
+- This setup is designed for local development with LocalStack, but the commands are the same for the AWS CLI (just replace `lstk aws` with `aws`)
 - Email verification happens automatically in LocalStack (no need to click verification links) but to create a similar setup on AWS, you will need to run through the verification process first
 - The setup auto-confirms the SNS subscription, but in real AWS you would need to use the confirmation email link
 - All AWS resources are created locally and won't affect your real AWS account

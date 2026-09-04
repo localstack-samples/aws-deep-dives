@@ -42,10 +42,9 @@ This project demonstrates AWS SQS with a first-in-first-out (FIFO) queue and a d
 
 ## Prerequisites
 
-- A valid [LocalStack for AWS license](https://localstack.cloud/pricing). Your license provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/getting-started/auth-token/) to activate LocalStack.
-- [LocalStack CLI](https://docs.localstack.cloud/getting-started/installation/) installed
-- LocalStack's AWS CDK wrapper [`cdklocal`](https://github.com/localstack/aws-cdk-local) installed
-- LocalStack's AWS CLI wrapper [`awslocal`](https://github.com/localstack/awscli-local) installed
+- A valid [LocalStack for AWS license](https://localstack.cloud/pricing). Your license provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/aws/getting-started/auth-token/) to activate LocalStack.
+- [`lstk` CLI](https://docs.localstack.cloud/aws/developer-tools/running-localstack/lstk/) installed
+- [AWS CLI](https://docs.localstack.cloud/user-guide/integrations/aws-cli/), required by `lstk aws`
 - Node.js and npm installed
 
 Export your auth token before starting:
@@ -101,8 +100,8 @@ make check-status-dynamo
 Deploy the CDK stack:
 
 ```bash
-cdklocal bootstrap
-cdklocal deploy
+lstk cdk bootstrap
+lstk cdk deploy
 ```
 
 ## Expected Behavior

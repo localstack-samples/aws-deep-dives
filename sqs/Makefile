@@ -3,7 +3,7 @@ LOCALSTACK_AUTH_TOKEN ?= $(LOCALSTACK_AUTH_TOKEN)
 .PHONY: start
 start:
 	@test -n "$(LOCALSTACK_AUTH_TOKEN)" || (echo "LOCALSTACK_AUTH_TOKEN is not set. Please set it before starting LocalStack." && exit 1)
-	DEBUG=1 LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) localstack start -d
+	LOCALSTACK_DEBUG=1 LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) lstk start
 
 .PHONY: help
 help:
@@ -16,21 +16,21 @@ help:
 	@echo "  restart    - Restart the SQS stack on LocalStack"
 .PHONY: deploy
 deploy:
-	cdklocal bootstrap
-	cdklocal deploy --require-approval never
+	lstk cdk bootstrap
+	lstk cdk deploy --require-approval never
 
 # You can also invoke this function using the LocalStack web console
 # note that if you invoke this more than once, you'll need to change the payload
 # as idempotency will prevent duplicate orders from being processed
 .PHONY: test-order
 test-order:
-	@FUNCTION_NAME=$$(awslocal lambda list-functions --query 'Functions[?starts_with(FunctionName, `SqsStack-orderManagerFunction`)].FunctionName' --output text); \
+	@FUNCTION_NAME=$$(lstk aws lambda list-functions --query 'Functions[?starts_with(FunctionName, `SqsStack-orderManagerFunction`)].FunctionName' --output text); \
 	if [ -z "$$FUNCTION_NAME" ]; then \
 		echo "Error: No function found starting with 'orderManagerFunction'"; \
 		exit 1; \
 	fi; \
 	echo "Invoking function: $$FUNCTION_NAME"; \
-	awslocal lambda invoke --function-name "$$FUNCTION_NAME" --payload file://sampleData/order.json --cli-binary-format raw-in-base64-out /dev/stdout;
+	lstk aws lambda invoke --function-name "$$FUNCTION_NAME" --payload file://sampleData/order.json --cli-binary-format raw-in-base64-out /dev/stdout;
 
 # You can also view the SQS messages in the LocalStack web console
 .PHONY: check-status-sqs
@@ -40,8 +40,8 @@ check-status-sqs:
 # You can also view the DynamoDB table data in the LocalStack web console
 .PHONY: check-status-dynamo
 check-status-dynamo:
-	awslocal dynamodb scan --table-name OrderItemsTable
+	lstk aws dynamodb scan --table-name OrderItemsTable
 
 .PHONY: restart
 restart:
-	localstack restart
+	lstk restart
