@@ -1,5 +1,8 @@
 LOCALSTACK_AUTH_TOKEN ?= $(LOCALSTACK_AUTH_TOKEN)
 
+# lstk cdk runs the cdk CLI from PATH, so use the version pinned in package.json
+export PATH := $(CURDIR)/node_modules/.bin:$(PATH)
+
 .PHONY: start
 start:
 	@test -n "$(LOCALSTACK_AUTH_TOKEN)" || (echo "LOCALSTACK_AUTH_TOKEN is not set. Please set it before starting LocalStack." && exit 1)
@@ -12,6 +15,7 @@ help:
 	@echo "  test-order     - Test the order processing functionality"
 	@echo "  check-status-sqs      - get the status of the order items from SQS"
 	@echo "  check-status-dynamo      - get the status of the order items from the database"
+	@echo "  test    - Submit an order and check retries and the DLQ handled each item"
 	@echo "  start    - Start the LocalStack"
 	@echo "  restart    - Restart the SQS stack on LocalStack"
 .PHONY: deploy
@@ -41,6 +45,10 @@ check-status-sqs:
 .PHONY: check-status-dynamo
 check-status-dynamo:
 	lstk aws dynamodb scan --table-name OrderItemsTable
+
+.PHONY: test
+test:
+	./test.sh
 
 .PHONY: restart
 restart:

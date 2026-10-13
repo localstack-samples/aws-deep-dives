@@ -7,6 +7,7 @@ import type { Context, APIGatewayProxyResult } from 'aws-lambda';
 import { Logger } from '@aws-lambda-powertools/logger';
 
 interface OrderItem {
+    itemId?: string;
     itemDetail: string;
     quantity: number;
     price: number;
@@ -46,7 +47,7 @@ const addOrderToDatabase = async (orderId: string, userId: string, items: OrderI
         // Store individual order items
         orderItemRecords = items.map((item, index) => ({
             orderId,
-            itemId: `${orderId}-item-${index}`, // Create unique item ID
+            itemId: item.itemId ?? `${orderId}-item-${index}`, // Use the given item ID or create one
             itemDetail: item.itemDetail,
             quantity: item.quantity,
             price: item.price,

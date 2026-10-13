@@ -16,10 +16,15 @@ start:
 	@test -n "$(LOCALSTACK_AUTH_TOKEN)" || (echo "LOCALSTACK_AUTH_TOKEN is not set. Please set it before starting LocalStack." && exit 1)
 	LOCALSTACK_DEBUG=1 LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) lstk start
 
+.PHONY: test
+test:
+	./test.sh
+
 .PHONY: help
 help:
 	@echo "Available commands:"
 	@echo "  start     - Start LocalStack (requires LOCALSTACK_AUTH_TOKEN)"
+	@echo "  test      - Run the setup, send emails and check the results"
 	@echo "  create-config-set    - Create the SES configuration set"
 	@echo "  create-sns-topic     - Create SNS topic for SES events"
 	@echo "  subscribe-topic      - Subscribe to the SNS topic via email"
@@ -52,7 +57,7 @@ create-config-set:
 # for example purposes, we're only including limited events
 .PHONY: setup-event-dest
 setup-event-dest:
-	$(eval SNS_TOPIC_ARN := $(shell lstk aws sns get-topic-attributes --topic-arn arn:aws:sns:$(shell lstk aws configure get region):$(shell lstk aws sts get-caller-identity --query Account --output text):$(SNS_TOPIC_NAME) --query 'Attributes.TopicArn' --output text 2>/dev/null || aws sns create-topic --name $(SNS_TOPIC_NAME) --query 'TopicArn' --output text))
+	$(eval SNS_TOPIC_ARN := $(shell lstk aws sns create-topic --name $(SNS_TOPIC_NAME) --query 'TopicArn' --output text))
 	@echo "Setting up event destination to SNS topic: $(SNS_TOPIC_ARN)"
 	lstk aws ses create-configuration-set-event-destination \
 		--configuration-set-name $(CONFIG_SET_NAME) \
@@ -67,8 +72,9 @@ verify-email:
 
 # Subscribe to the SNS topic
 # As we are testing this locally on LocalStack, this will also automatically confirm the subscription
+.PHONY: subscribe-topic
 subscribe-topic:
-	$(eval SNS_TOPIC_ARN := $(shell lstk aws sns get-topic-attributes --topic-arn arn:aws:sns:$(shell lstk aws configure get region):$(shell lstk aws sts get-caller-identity --query Account --output text):$(SNS_TOPIC_NAME) --query 'Attributes.TopicArn' --output text 2>/dev/null || aws sns create-topic --name $(SNS_TOPIC_NAME) --query 'TopicArn' --output text))
+	$(eval SNS_TOPIC_ARN := $(shell lstk aws sns create-topic --name $(SNS_TOPIC_NAME) --query 'TopicArn' --output text))
 	@echo "Subscribing to SNS topic: $(SNS_TOPIC_ARN)"
 	SUBSCRIPTION_ARN=$$(lstk aws sns subscribe --topic-arn $(SNS_TOPIC_ARN) --protocol email --notification-endpoint $(SNS_TOPIC_EMAIL) | jq -r '.SubscriptionArn') && \
 	SUBSCRIPTION_TOKEN=$$(curl "http://localhost:4566/_aws/sns/subscription-tokens/$$SUBSCRIPTION_ARN" | jq -r '.subscription_token') && \
