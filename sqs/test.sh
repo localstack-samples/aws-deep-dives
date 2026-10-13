@@ -6,7 +6,8 @@
 # The order ID is unique per run, since idempotency skips repeated orders.
 set -euo pipefail
 
-MAX_ATTEMPTS=${MAX_ATTEMPTS:-60}
+# Items share one FIFO message group, so retries run one after another
+MAX_ATTEMPTS=${MAX_ATTEMPTS:-90}
 ORDER_ID="ORD-ci-$(date +%s)"
 PAYLOAD=$(mktemp)
 RESPONSE=$(mktemp)

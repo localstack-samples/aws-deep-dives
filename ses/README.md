@@ -39,7 +39,7 @@ To run the full setup, send a text and an HTML email, and check the results:
 make test
 ```
 
-The test checks the sender is verified, the configuration set routes reject, bounce and complaint events to the SNS topic, the email subscription is confirmed, and both emails reach LocalStack's SES message store (`/_aws/ses`). Run it against a fresh LocalStack, since `make setup-all` fails if the configuration set already exists.
+The test checks the sender is verified, the configuration set exists, the email subscription is confirmed, and both emails reach LocalStack's SES message store (`/_aws/ses`). Run it against a fresh LocalStack, since `make setup-all` fails if the configuration set already exists.
 
 ## Available Commands
 
