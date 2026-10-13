@@ -1,5 +1,8 @@
 LOCALSTACK_AUTH_TOKEN ?= $(LOCALSTACK_AUTH_TOKEN)
 
+# lstk cdk runs the cdk CLI from PATH, so use the version pinned in package.json
+export PATH := $(CURDIR)/node_modules/.bin:$(PATH)
+
 .PHONY: start
 start:
 	@test -n "$(LOCALSTACK_AUTH_TOKEN)" || (echo "LOCALSTACK_AUTH_TOKEN is not set. Please set it before starting LocalStack." && exit 1)

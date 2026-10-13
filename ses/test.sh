@@ -22,8 +22,12 @@ if [ "$status" != "Success" ]; then
 fi
 echo "PASS: $SENDER is verified"
 
-destination=$(lstk aws ses describe-configuration-set --configuration-set-name "$CONFIG_SET" \
-  --configuration-set-attribute-names eventDestination --query 'EventDestinations[0]' --output json)
+described=$(lstk aws ses describe-configuration-set --configuration-set-name "$CONFIG_SET" \
+  --configuration-set-attribute-names eventDestination --output json)
+echo "describe-configuration-set: $described"
+v2=$(lstk aws sesv2 get-configuration-set-event-destinations --configuration-set-name "$CONFIG_SET" --output json || true)
+echo "sesv2 get-configuration-set-event-destinations: $v2"
+destination=$(echo "$described" | jq '.EventDestinations[0]')
 if ! echo "$destination" | jq -e --arg topic ":$TOPIC_NAME" \
   '.Enabled and (.SNSDestination.TopicARN | endswith($topic)) and (.MatchingEventTypes | sort == ["bounce", "complaint", "reject"])' > /dev/null; then
   echo "Test failed: unexpected event destination $destination"
