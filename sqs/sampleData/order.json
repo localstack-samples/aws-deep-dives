@@ -5,37 +5,37 @@
   "orderItems": [
     {
       "itemId": "ITEM-101",
-      "name": "Caffè Latte",
+      "itemDetail": "Caffè Latte",
       "quantity": 2,
       "price": 4.5
     },
     {
       "itemId": "ITEM-223",
-      "name": "Cappuccino",
+      "itemDetail": "Cappuccino",
       "quantity": 1,
       "price": 4.0
     },
     {
       "itemId": "ITEM-334",
-      "name": "Flat White",
+      "itemDetail": "Flat White",
       "quantity": 1,
       "price": 4.25
     },
     {
       "itemId": "ITEM-452",
-      "name": "Espresso",
+      "itemDetail": "Espresso",
       "quantity": 3,
       "price": 2.75
     },
     {
       "itemId": "ITEM-565",
-      "name": "Mocha",
+      "itemDetail": "Mocha",
       "quantity": 2,
       "price": 4.75
     },
     {
       "itemId": "ITEM-678",
-      "name": "Macchiato",
+      "itemDetail": "Macchiato",
       "quantity": 1,
       "price": 3.95
     }

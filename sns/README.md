@@ -58,6 +58,14 @@ npm install
 make deploy
 ```
 
+Then check the subscribers:
+
+```bash
+make test
+```
+
+The test publishes OrderPlaced, low and high priority OrderDelayed, and high priority OrderCancelled events through the API. It checks that each Lambda's logs only contain the events its filter policy allows, that ops-alerts published to the `ops-alerts` topic, and that customer-notifications sent SMS messages (read from LocalStack's `/_aws/sns/sms-messages` endpoint).
+
 ### Manual Deployment
 
 Deploy the CDK stack:
@@ -91,7 +99,7 @@ curl -X POST https://<api-id>.execute-api.localhost.localstack.cloud:4566/prod/o
   -d '{
     "eventType": "OrderPlaced",
     "userId": "user-123",
-    "phoneNumber": "3333333333",
+    "phoneNumber": "+13333333333",
     "orderTotal": 99.99,
     "items": [
       {"productId": "PROD-001", "quantity": 2, "price": 49.99}
@@ -106,7 +114,7 @@ curl -X POST https://<api-id>.execute-api.localhost.localstack.cloud:4566/prod/o
   -d '{
     "eventType": "OrderShipped",
     "userId": "user-123",
-    "phoneNumber": "3333333333",
+    "phoneNumber": "+13333333333",
     "trackingNumber": "1Z999AA10123456784",
     "estimatedDelivery": "2024-01-15"
   }'
@@ -119,7 +127,7 @@ curl -X POST https://<api-id>.execute-api.localhost.localstack.cloud:4566/prod/o
   -d '{
     "eventType": "OrderDelayed",
     "userId": "user-123",
-    "phoneNumber": "3333333333",
+    "phoneNumber": "+13333333333",
     "priority": "high",
     "reason": "Weather delay at distribution center"
   }'
@@ -127,12 +135,12 @@ curl -X POST https://<api-id>.execute-api.localhost.localstack.cloud:4566/prod/o
 
 **Cancel an order (high priority - triggers ops alert):**
 ```bash
-curl -X POST  https://6epzwkqhxp.execute-api.localhost.localstack.cloud:4566/prod/orders/ORD-12345/events \
+curl -X POST https://<api-id>.execute-api.localhost.localstack.cloud:4566/prod/orders/ORD-12345/events \
   -H "Content-Type: application/json" \
   -d '{
     "eventType": "OrderCancelled",
     "userId": "user-123",
-    "phoneNumber": "3333333333",
+    "phoneNumber": "+13333333333",
     "priority": "high",
     "reason": "Item out of stock"
   }'
@@ -176,18 +184,18 @@ Each message includes attributes for filtering:
 
 1. **Low priority delay** - Only Analytics receives it:
    ```bash
-   curl -X POST <api-url>/orders \
+   curl -X POST <api-url>/orders -H "Content-Type: application/json" \
      -d '{"eventType": "OrderDelayed", "userId": "test", "priority": "low"}'
    ```
 
 2. **High priority delay** - Analytics AND Ops Alerts receive it:
    ```bash
-   curl -X POST <api-url>/orders \
+   curl -X POST <api-url>/orders -H "Content-Type: application/json" \
      -d '{"eventType": "OrderDelayed", "userId": "test", "priority": "high"}'
    ```
 
 3. **Order placed** - Customer Notifications AND Analytics receive it:
    ```bash
-   curl -X POST <api-url>/orders \
+   curl -X POST <api-url>/orders -H "Content-Type: application/json" \
      -d '{"eventType": "OrderPlaced", "userId": "test", "orderTotal": 50}'
    ```

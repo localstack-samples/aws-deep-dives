@@ -12,6 +12,7 @@ help:
 	@echo "  test-order     - Test the order processing functionality"
 	@echo "  check-status-sqs      - get the status of the order items from SQS"
 	@echo "  check-status-dynamo      - get the status of the order items from the database"
+	@echo "  test    - Submit an order and check retries and the DLQ handled each item"
 	@echo "  start    - Start the LocalStack"
 	@echo "  restart    - Restart the SQS stack on LocalStack"
 .PHONY: deploy
@@ -41,6 +42,10 @@ check-status-sqs:
 .PHONY: check-status-dynamo
 check-status-dynamo:
 	lstk aws dynamodb scan --table-name OrderItemsTable
+
+.PHONY: test
+test:
+	./test.sh
 
 .PHONY: restart
 restart:

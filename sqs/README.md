@@ -13,6 +13,8 @@ This project demonstrates AWS SQS with a first-in-first-out (FIFO) queue and a d
   - Sends individual item processing messages to the SQS FIFO queue
   - Uses idempotency to prevent duplicate processing
 
+Each item in the order may include an `itemId`. Items without one get `<orderId>-item-<index>`.
+
 ### 2. SQS FIFO Queue
 - **Queue Name**: `sqs-main-queue.fifo`
 - **Configuration**:
@@ -82,6 +84,14 @@ Test the project using sample order data:
 ```bash
 make test-order
 ```
+
+Or submit an order and wait for every item to finish:
+
+```bash
+make test
+```
+
+The test submits `sampleData/order.json` under a unique order ID and checks that ITEM-223 ends up `FAILED` through the DLQ, ITEM-101 finishes as `PROCESSED` or `FAILED`, and the remaining items are `PROCESSED`.
 
 View the status of items on the main FIFO queue:
 

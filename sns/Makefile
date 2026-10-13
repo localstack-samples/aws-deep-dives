@@ -10,8 +10,13 @@ deploy:
 	lstk cdk bootstrap
 	lstk cdk deploy --require-approval never
 
+.PHONY: test
+test:
+	./test.sh
+
 .PHONY: help
 help:
 	@echo "Available commands:"
 	@echo "  start     - Start LocalStack (requires LOCALSTACK_AUTH_TOKEN)"
 	@echo "  deploy    - Deploy the SNS stack to LocalStack using CDK"
+	@echo "  test      - Publish order events and check the filter policies"

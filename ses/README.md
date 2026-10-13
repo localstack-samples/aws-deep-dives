@@ -31,6 +31,16 @@ To set up SES with a verified email identity, a configuration set and an SNS top
 make setup-all
 ```
 
+## Test
+
+To run the full setup, send a text and an HTML email, and check the results:
+
+```bash
+make test
+```
+
+The test checks the sender is verified, the configuration set routes reject, bounce and complaint events to the SNS topic, the email subscription is confirmed, and both emails reach LocalStack's SES message store (`/_aws/ses`). Run it against a fresh LocalStack, since `make setup-all` fails if the configuration set already exists.
+
 ## Available Commands
 
 Note that, while you can run each command individually, some commands are dependent on other services existing, so the order you run them is important.
